@@ -42,6 +42,7 @@ class WPDialoga
 {
   protected $pluginPath;
   protected $pluginUrl;
+  protected $page;
 
   public function __construct()
   {
@@ -52,6 +53,7 @@ class WPDialoga
       $this->pluginUrl = WP_PLUGIN_URL . '/WPDialoga';
       
       add_action('init', array($this, 'Init'));
+      $page = 1;
   }
 
   public function Init()
@@ -59,17 +61,22 @@ class WPDialoga
       add_action( 'delibera_menu_itens', array( $this, 'wpdialoga_custom_admin_menu') );
       register_activation_hook( __FILE__, array( $this, 'wpdialoga_activate' ) );
       add_action( 'wp_ajax_add_transfer', array( $this, 'wpdialoga_form_handler' ) );
-      //add_action( 'wp_ajax_nopriv_add_tranfer', array( $this, 'wpdialoga_form_handler' ) );
-      //add_action( 'admin_menu', array($this, 'wpdialoga_custom_admin_menu') );
+      add_action( 'wp_ajax_change_page', array( $this, 'wpdialoga_page_handler' ) );
   }
 
-  // ideia create dialoga category on enable plugin - https://codex.wordpress.org/Function_Reference/register_activation_hook
   static function wpdialoga_activate() 
   {
     if (!get_cat_ID( 'dialoga' ))
       wp_create_category('dialoga');
   }
+  
   //http://wordpress.stackexchange.com/questions/60758/how-to-handle-form-submission
+  public function wpdialoga_page_handler()
+  {
+    $page = $_POST["page"];
+    wp_redirect( admin_url()."admin.php?page=wpdialoga-plugin&api_page=".$page ); exit;
+  }
+
   public function wpdialoga_form_handler()
   {
     $user_ID = get_current_user_id();
@@ -151,12 +158,11 @@ class WPDialoga
   public function wpdialoga_options_page()
   {
     // XXX This need test
-    //$page = $_POST['page'];
-    //echo $page;
+    $page = intval($_GET['api_page']);
   
     include 'DialogaAPI.php';
     $dialogaAPI = new DialogaAPI();
-    $proposals = $dialogaAPI->getAllProposals();
+    $proposals = $dialogaAPI->getAllProposals($page);
     ?>
     <div class="wrap">
         <h2>Importar Propostas de Pauta do Dialoga</h2>
@@ -196,26 +202,38 @@ class WPDialoga
               }//end foreach
         ?>
               <!-- init pager -->
-              <center>
-               <!--<a> << </a> -->
-        <?php 
-             for($i = 1; $i<10; $i++)
-             { 
-                 //TODO: link reaload the function with new parameter for page. see wp callback. See search json or content on wp page;
-                ?>
-                <a href="admin.php?page=wpdialoga-plugin&page_number=<?php echo $i ?>"><?php echo $i; ?></a>
-                <?php
-             }
-        ?>
-               <!-- <a> >> </a> -->
-               <br>
-               <br>
-              </center>
               <?php wp_nonce_field('add_transfer', 'security_code')?>
               <input name="action" value="add_transfer" type="hidden" >
               <!-- end pager -->
               <?php submit_button("Inserir") ?>
        </form>
+       <form id="" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>" class="form" >
+             <center>
+              <!--<a> << </a> -->
+             <?php 
+                  for($i = 1; $i<10; $i++)
+                  { 
+                      //TODO: link reaload the function with new parameter for page. see wp callback. See search json or content on wp page;
+                     ?>
+                     <input name="page" style="background:none!important;
+                                   border:none; 
+                                   padding:0!important;
+                                   font: inherit;
+                                   /*border is optional*/
+                                   border-bottom:1px solid #444; 
+                                   cursor: pointer;"
+                                   type="submit" value="<?php echo $i; ?>">
+                     </input>
+                     <?php wp_nonce_field('change_page', 'security_code')?>
+                     <input name="action" value="change_page" type="hidden" >
+                     <?php
+                  }
+             ?>
+             <!-- <a> >> </a> -->
+             <br>
+             <br>
+             </center>
+      </form>
     </div>
     <?php
   }
