@@ -63,13 +63,10 @@ class WPDialoga
     if (!get_cat_ID( 'dialoga' ))
       wp_create_category('dialoga');
   }
-  
+  //http://wordpress.stackexchange.com/questions/60758/how-to-handle-form-submission
   public function wpdialoga_form_handler()
   {
     $user_ID = get_current_user_id();
-    echo "<pre>";
-    var_dump($_POST);
-    echo "</pre>";
 
     if ( empty($_POST) || !wp_verify_nonce( $_POST['security_code'] , 'add_transfer' ) )
     {
@@ -81,6 +78,54 @@ class WPDialoga
       wp_redirect( $redirect_url_for_non_ajax_request );
     }
 
+    foreach($_POST as $key => $value) {
+        if (strpos($key, 'propose_') === 0) {
+            $propose = $_POST[$key];
+            $propose = explode("###", $propose);
+            // title
+            // echo $propose[0]."<br>";
+            // subcatecory
+            // echo $propose[1]."<br>";
+            // author - insert with title or create a meta for this on pauta?
+            // echo $propose[2]."<br>";
+            // Initialize the post ID to -1. This indicates no action has been taken.
+            $post_id = -1;
+            
+            // Setup the author, slug, and title for the post
+            $author_id = $user_ID;
+            $slug = $key;
+            $title = $propose[0];
+            if(!term_exists($propose[1])) {
+              wp_insert_term(
+                $propose[1],
+                'dialoga'
+              );
+            } 
+            // If the page doesn't already exist, then create it
+            if( null == get_page_by_title( $title , 'OBJECT' , 'pauta'  ) ) {
+              // Set the page ID so that we know the page was created successfully
+              $post_id = wp_insert_post(
+              	array(
+              		'ping_status'		=>	'closed',
+              		'post_author'		=>	$author_id,
+              		'post_name'		=>	$slug,
+              		'post_title'		=>	$title,
+              		'post_status'		=>	'publish',
+              		'post_type'		=>	'pauta',
+                        'post_category' => get_cat_ID( 'dialoga' ) 
+              	     )
+              );
+            // Otherwise, we'll stop and set a flag
+            } 
+            else
+            {
+              // Arbitrarily use -2 to indicate that the page with the title already exists
+              $post_id = -2;
+            } // end if
+        }
+    }
+
+    wp_redirect( admin_url()."edit.php?post_type=pauta" ); exit;
  
     // Create post object
     // $my_post = array(
@@ -88,7 +133,6 @@ class WPDialoga
     //'post_content'  => $_POST['pauta'],
     //'post_status'   => 'publish',
     //'post_author'   => $user_ID,
-    //'post_category' => get_cat_ID( 'dialoga' ) 
     //);
  
     //// Insert the post into the database
