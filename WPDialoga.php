@@ -50,47 +50,81 @@ class WPDialoga
 
   public function Init()
   {
-      add_action( 'admin_menu', array($this, 'wpdialoga_custom_admin_menu') );
+      add_action( 'delibera_menu_itens', array($this, 'wpdialoga_custom_admin_menu') );
+      //add_action( 'admin_menu', array($this, 'wpdialoga_custom_admin_menu') );
   }
 
   public function wpdialoga_custom_admin_menu()
   {
     //TODO: use delibera menu
-      add_options_page(
-          'WP Dialoga Title',
-          'WP Dialoga Menu Item',
+       add_submenu_page(
+          'delibera-config',
+          'Importar Propostas de Pauta do Dialoga',
+          'Importar do DialogaGOV',
           'manage_options',
-          'wpdialoga-plugin',
-          array($this, 'wpdialoga_options_page')
-      );
+          'wpdialoga-plugin', 
+          array($this, 'wpdialoga_options_page') 
+       );
   }
 
   public function wpdialoga_options_page()
   {
+    // XXX This need test
+    $page = $_POST['page'];
+    echo $page;
+    // $dialogaAPI->getAllProposals($page);
+  
     include 'DialogaAPI.php';
     $dialogaAPI = new DialogaAPI();
     $proposals = $dialogaAPI->getAllProposals();
     ?>
     <div class="wrap">
-        <h2>Import Dialoga Proposal's Options</h2>
+        <h2>Importar Propostas de Pauta do Dialoga</h2>
         <br>
+        <label>Selecione quais das propostas de Pauta você deseja importar para o delibera. Clique no botão no final da página e nós vamos inserir a Proposta de Pauta para você, note que se algum usuário já inseriu esta proposta de pauta o link da Pauta no delibera, bem como seu status aparece ao lado da do Texto da Proposta de Pauta. 
+        </label>
         <br>
+        <!-- show proposals -->
         <form >
         <?php 
               foreach($proposals as $propose){ ?>
-                 <input type="checkbox" value="<?php echo $propose->id; ?>" >
-                     <?php echo $propose->abstract; ?>
-                     <br>
-                     <label>Categoria: </label><?php echo $propose->categories[0]->name; ?>
-                     <br>
-                     <!-- TODO: what, where is the original author name? On articles exist other author_name -->
-                     <label>Author: </label> <?php echo $propose->parent->setting->author_name; ?>
+                 <h4>
+                  <input type="checkbox" value="<?php echo $propose->id; ?>" >
+                    <?php echo $propose->abstract; ?>
+                    <br>
+                  </input>
+                 </h4>
+                 <!-- TODO: what is the best choise. Remove all html tags from text before show? or show with images and organization? -->
+                 <label>Categoria: </label>
+                     <?php echo $propose->categories[0]->name; ?>
+                 <br>
+                 <!-- TODO: what, where is the original author name? On articles exist other author_name -->
+                 <label>Author: </label>
+                     <?php echo $propose->parent->setting->author_name; ?>
                  </input>
                  <br>
                  <br>
                  <?php
-              }
+              }//end foreach
         ?>
+              <!-- init pager -->
+              <center>
+               <!--<a> << </a> -->
+        <?php 
+             for($i = 1; $i<10; $i++)
+             { 
+                 //TODO: link reaload the function with new parameter for page. see wp callback. See search json or content on wp page;
+                ?>
+                <a href="options-general.php?page=wpdialoga-plugin&page=<?php echo $i ?>"><?php echo $i; ?></a>
+                <?php
+             }
+        ?>
+               <!-- <a> >> </a> -->
+               <br>
+               <br>
+              </center>
+              <!-- end pager -->
+              <!-- TODO: find function for create button on wp -->
               <input type="button" id="submit" class="button button-primary" name="submit" value="Inserir Nova Proposta de Pauta">
        </form>
     </div>
