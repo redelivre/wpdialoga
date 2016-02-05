@@ -19,7 +19,7 @@ class DialogaAPI
         $response = wp_remote_retrieve_body( $request );
         
         $proposals = array();
-        if(is_object($response))
+        if(is_object(json_decode($response)))
         {	
         	$proposals = json_decode($response)->{'proposals'};
         }
