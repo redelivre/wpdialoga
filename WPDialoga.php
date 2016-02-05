@@ -126,17 +126,6 @@ class WPDialoga
     }
 
     wp_redirect( admin_url()."edit.php?post_type=pauta" ); exit;
- 
-    // Create post object
-    // $my_post = array(
-    //'post_title'    => wp_strip_all_tags( $_POST['post_title'] ),
-    //'post_content'  => $_POST['pauta'],
-    //'post_status'   => 'publish',
-    //'post_author'   => $user_ID,
-    //);
- 
-    //// Insert the post into the database
-    //wp_insert_post( $my_post );
 
   }
 
@@ -174,7 +163,10 @@ class WPDialoga
         <?php 
               foreach($proposals as $propose){ ?>
                  <h4>
-                  <input type="checkbox" name="propose_<?php echo $propose->id; ?>" value="<?php echo $propose->abstract . "###" . $propose->categories[0]->name . "###" . $propose->parent->setting->author_name; ?>" >
+                  <input type="checkbox" 
+                  <?php echo get_page_by_title( $propose->abstract , 'OBJECT' , 'pauta'  )?'disabled':"" ?>
+                  name="propose_<?php echo $propose->id; ?>" 
+                  value="<?php echo $propose->abstract . "###" . $propose->categories[0]->name . "###" . $propose->parent->setting->author_name; ?>" >
                     <?php echo $propose->abstract; ?>
                     <br>
                   </input>
@@ -211,7 +203,6 @@ class WPDialoga
               <?php wp_nonce_field('add_transfer', 'security_code')?>
               <input name="action" value="add_transfer" type="hidden" >
               <!-- end pager -->
-              <!-- TODO: find function for create button on wp -->
               <?php submit_button("Inserir") ?>
        </form>
     </div>
