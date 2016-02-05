@@ -70,8 +70,8 @@ class WPDialoga
   public function wpdialoga_options_page()
   {
     // XXX This need test
-    $page = $_POST['page'];
-    echo $page;
+    //$page = $_POST['page'];
+    //echo $page;
     // $dialogaAPI->getAllProposals($page);
   
     include 'DialogaAPI.php';
