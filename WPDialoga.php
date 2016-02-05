@@ -50,8 +50,50 @@ class WPDialoga
 
   public function Init()
   {
-      add_action( 'delibera_menu_itens', array($this, 'wpdialoga_custom_admin_menu') );
+      add_action( 'delibera_menu_itens', array( $this, 'wpdialoga_custom_admin_menu') );
+      register_activation_hook( __FILE__, array( $this, 'wpdialoga_activate' ) );
+      add_action( 'wp_ajax_add_transfer', array( $this, 'wpdialoga_form_handler' ) );
+      //add_action( 'wp_ajax_nopriv_add_tranfer', array( $this, 'wpdialoga_form_handler' ) );
       //add_action( 'admin_menu', array($this, 'wpdialoga_custom_admin_menu') );
+  }
+
+  // ideia create dialoga category on enable plugin - https://codex.wordpress.org/Function_Reference/register_activation_hook
+  static function wpdialoga_activate() 
+  {
+    if (!get_cat_ID( 'dialoga' ))
+      wp_create_category('dialoga');
+  }
+  
+  public function wpdialoga_form_handler()
+  {
+    $user_ID = get_current_user_id();
+    echo "<pre>";
+    var_dump($_POST);
+    echo "</pre>";
+
+    if ( empty($_POST) || !wp_verify_nonce( $_POST['security_code'] , 'add_transfer' ) )
+    {
+        echo 'A função esta correta mas seu nonce esta errado.';
+        die();
+    }
+    else
+    {
+      wp_redirect( $redirect_url_for_non_ajax_request );
+    }
+
+ 
+    // Create post object
+    // $my_post = array(
+    //'post_title'    => wp_strip_all_tags( $_POST['post_title'] ),
+    //'post_content'  => $_POST['pauta'],
+    //'post_status'   => 'publish',
+    //'post_author'   => $user_ID,
+    //'post_category' => get_cat_ID( 'dialoga' ) 
+    //);
+ 
+    //// Insert the post into the database
+    //wp_insert_post( $my_post );
+
   }
 
   public function wpdialoga_custom_admin_menu()
@@ -72,7 +114,6 @@ class WPDialoga
     // XXX This need test
     //$page = $_POST['page'];
     //echo $page;
-    // $dialogaAPI->getAllProposals($page);
   
     include 'DialogaAPI.php';
     $dialogaAPI = new DialogaAPI();
@@ -85,11 +126,11 @@ class WPDialoga
         </label>
         <br>
         <!-- show proposals -->
-        <form >
+        <form id="" method="post" action="<?php echo admin_url('admin-ajax.php'); ?>" class="form" >
         <?php 
               foreach($proposals as $propose){ ?>
                  <h4>
-                  <input type="checkbox" value="<?php echo $propose->id; ?>" >
+                  <input type="checkbox" name="propose_<?php echo $propose->id; ?>" value="<?php echo $propose->abstract . "###" . $propose->categories[0]->name . "###" . $propose->parent->setting->author_name; ?>" >
                     <?php echo $propose->abstract; ?>
                     <br>
                   </input>
@@ -115,7 +156,7 @@ class WPDialoga
              { 
                  //TODO: link reaload the function with new parameter for page. see wp callback. See search json or content on wp page;
                 ?>
-                <a href="options-general.php?page=wpdialoga-plugin&page=<?php echo $i ?>"><?php echo $i; ?></a>
+                <a href="admin.php?page=wpdialoga-plugin&page_number=<?php echo $i ?>"><?php echo $i; ?></a>
                 <?php
              }
         ?>
@@ -123,9 +164,11 @@ class WPDialoga
                <br>
                <br>
               </center>
+              <?php wp_nonce_field('add_transfer', 'security_code')?>
+              <input name="action" value="add_transfer" type="hidden" >
               <!-- end pager -->
               <!-- TODO: find function for create button on wp -->
-              <input type="button" id="submit" class="button button-primary" name="submit" value="Inserir Nova Proposta de Pauta">
+              <?php submit_button("Inserir") ?>
        </form>
     </div>
     <?php
