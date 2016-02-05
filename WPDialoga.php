@@ -1,6 +1,7 @@
 <?php
 /*
 Plugin Name: Import Dialoga Proposals
+Depends: Delibera
 Description: Plugin for import dialoga proposal's 
 Author: Maurilio Atila
 Version: 0.0
@@ -31,6 +32,11 @@ along with Import Dialoga Proposals.
 if ( ! defined( 'WPINC' ) ) {
     die;
 }
+
+if( !function_exists( 'is_pauta' ) ) {
+	die;
+}
+
 
 class WPDialoga
 {
