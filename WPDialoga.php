@@ -164,7 +164,7 @@ class WPDialoga
               foreach($proposals as $propose){ ?>
                  <h4>
                   <input type="checkbox" 
-                  <?php echo get_page_by_title( $propose->abstract , 'OBJECT' , 'pauta'  )?'disabled':"" ?>
+                  <?php echo get_page_by_title( $propose->abstract , 'OBJECT' , 'pauta'  )?'disabled':""; ?>
                   name="propose_<?php echo $propose->id; ?>" 
                   value="<?php echo $propose->abstract . "###" . $propose->categories[0]->name . "###" . $propose->parent->setting->author_name; ?>" >
                     <?php echo $propose->abstract; ?>
@@ -179,6 +179,11 @@ class WPDialoga
                  <label>Author: </label>
                      <?php echo $propose->parent->setting->author_name; ?>
                  </input>
+                 <br>
+                 <br>
+                  <?php echo get_page_by_title( $propose->abstract , 'OBJECT' , 'pauta'  )?'<label style="color:red">Conteudo já esta online</label>':""; ?>
+                 <br>
+                 <a href="<?php echo get_page_by_title( $propose->abstract , 'OBJECT' , 'pauta'  )? post_permalink( get_page_by_title( $propose->abstract , 'OBJECT' , 'pauta'  )->ID):""; ?>">Clique aqui para contribur para contribuir para essa pauta</a>
                  <br>
                  <br>
                  <?php
